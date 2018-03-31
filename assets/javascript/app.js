@@ -62,17 +62,33 @@ $("#start-btn").on("click", function(){
             //save id of player 1 to this browsers local storage/session storage
         }else if(snapshot.child("players").numChildren()<2){
             console.log("number of children in players", snapshot.child("players").numChildren())
-            console.log("great, you are player 2")
-            database.ref("/players").update({
-                2:{
-                    name: userName,
-                    choice: "empty",
-                    wins: 0,
-                    losses: 0
-                }
-            })
-            myPlayerID = 2;
-            addPlayerLockout = true;
+            console.log("1 exists: ", snapshot.child("players").child("1").exists())
+            
+            if(snapshot.child("players").child("1").exists()){
+                console.log("great, you are player 2")
+                database.ref("/players").update({
+                    2:{
+                        name: userName,
+                        choice: "empty",
+                        wins: 0,
+                        losses: 0
+                    }
+                })
+                myPlayerID = 2;
+                addPlayerLockout = true;
+            }else{
+                console.log("great, you are player 1")
+                database.ref("/players").update({
+                    1:{
+                        name: userName,
+                        choice: "empty",
+                        wins: 0,
+                        losses: 0
+                    }
+                })
+                myPlayerID = 1;
+                addPlayerLockout = true;
+            }
         }else{
             console.log("sorry, we already have 2 players")
             //return;
