@@ -36,13 +36,20 @@
             </div>
         </div>
         <!-- Row 2: player cards and result card -->
-        <div class="row">
+        <div class="row  mt-3">
             <!-- Player 1 -->
             <div class="col-4">
                 <div class="card" id="js-player1-div">
                     <div class="card-body" >
                         <h5 class="card-title" id="js-player1-title">Player 1</h5>
-                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                        <p class="card-text" id="js-player1-card-text"></p>
+                        <div id="js-player1-rps-btns">
+                            <div class="d-flex flex-column" id="js-player1-rps-btns-wrapper">
+                                <button type="button" class="btn btn-outline-primary" value="rock">Rock</button>
+                                <button type="button" class="btn btn-outline-primary" value="paper">Paper</button>
+                                <button type="button" class="btn btn-outline-primary" value="scissors">Scissors</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -51,7 +58,7 @@
                 <div class="card" id="js-result-display-div">
                     <div class="card-body">
                         <h5 class="card-title" id="js-result-display-title">Result</h5>
-                        <p class="card-text">(placeholder)</p>
+                        <p class="card-text" id="js-result-display-card-text">(placeholder)</p>
                     </div>
                 </div>
             </div>
@@ -60,15 +67,22 @@
                 <div class="card" id="js-player2-div">
                     <div class="card-body">
                         <h5 class="card-title" id="js-player2-title">Player 2</h5>
-                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                        <p class="card-text" id="js-player2-card-text"></p>
+                        <div id="js-player2-rps-btns">
+                            <div class="d-flex flex-column" id="js-player2-rps-btns-wrapper">
+                                <button type="button" class="btn btn-outline-primary" value="rock">Rock</button>
+                                <button type="button" class="btn btn-outline-primary" value="paper">Paper</button>
+                                <button type="button" class="btn btn-outline-primary" value="scissors">Scissors</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         <!-- Row 3: messageboard -->
-        <div class="row">
+        <div class="row mt-5">
             <div class="col-12">
-                <div class="card mt-5">
+                <div class="card">
                     <div class="card-header text-center">
                         Message Board
                     </div>
@@ -85,6 +99,25 @@
             </div>
         </div>
 
+        <!-- Popup modal -->
+        <div class="modal fade" id="pop-up-window" tabindex="-1" role="dialog" aria-labelledby="pop-up" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pop-up-title">Placeholder Title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="pop-up-text">
+                    (placeholder text)
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary mx-auto" data-dismiss="modal">OK</button>
+                </div>
+                </div>
+            </div>
+        </div>
 
 
         
@@ -96,6 +129,10 @@
 
     <!-- linking JQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- linking bootstrap javascript -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <!-- linking javascript file -->
     <script src="./assets/javascript/app.js"></script>
     
