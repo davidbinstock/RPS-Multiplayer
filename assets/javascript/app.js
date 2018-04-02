@@ -118,6 +118,11 @@ $("#start-btn").on("click", function(){
         
 })
 
+$("#message-send-btn").on("click", function(){
+    event.preventDefault()
+    console.log("message-send button clicked")
+})
+
 // var playerRef = database.ref("/players/"+ myPlayerID);
 // console.log("down here")
 // console.log(playerRef);
