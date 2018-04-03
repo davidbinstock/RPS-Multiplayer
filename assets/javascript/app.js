@@ -2,7 +2,10 @@
 //========================Global Variables==================================
 //==========================================================================
 var addPlayerLockout = false;
+var userName;
 var myPlayerID;
+var localTurn;
+var startAgainTimeoutID;
 
 
 
@@ -56,14 +59,14 @@ $("#start-btn").on("click", function(){
     }
     
     //set text input to variable "userName"
-    var userName = $("#name-input").val()
+    userName = $("#name-input").val()
     console.log("user name entered: " + userName)
 
     
 
     //grab a snapshot of the database to check current values
     database.ref().once('value').then(function(snapshot){
-        console.log("snapshot", snapshot.val());
+        console.log("snapshot: ", snapshot.val());
         console.log("players child exists: ", snapshot.child("players").exists());
         
         //Scenario 1:
@@ -80,6 +83,11 @@ $("#start-btn").on("click", function(){
             $("#pop-up-title").html("Welcome " + userName + "! You are Player 1")
             $("#pop-up-text").html("Let's play some Rock Paper Scissors!")
             $("#pop-up-window").modal("show")
+            //save id of player to "myPlayerID" variable (scope: global)
+            myPlayerID = 1;
+            //set "addPlayerLockout" to false to prevent user from enter another name
+            //note: this becomes unnecessary/redundant if the add name form is hidden
+            addPlayerLockout = true;
             // generate name, losses, wins, and choice for this player
             database.ref("/players").update({
                 1:{
@@ -89,17 +97,12 @@ $("#start-btn").on("click", function(){
                     losses: 0
                 }
             })
-            //save id of player to "myPlayerID" variable (scope: global)
-            myPlayerID = 1;
-            //set "addPlayerLockout" to false to prevent user from enter another name
-            //note: this becomes unnecessary/redundant if the add name form is hidden
-            addPlayerLockout = true;
 
         //Scenario 2:
         //if players already exists and there is only 1 (i.e. less than 2), then the user can enter the game as the second player
         }else if(snapshot.child("players").numChildren()<2){
             //console logs for development purposes. Checking number of children and wheather or not player 1 exists
-            console.log("number of children in players", snapshot.child("players").numChildren())
+            console.log("number of children in players: ", snapshot.child("players").numChildren())
             console.log("Player 1 exists: ", snapshot.child("players").child("1").exists())
             
             //if player one already exists, make this user player 2
@@ -115,6 +118,8 @@ $("#start-btn").on("click", function(){
                 $("#pop-up-text").html("Let's play some Rock Paper Scissors!")
                 $("#pop-up-window").modal("show")
                 // generate name, losses, wins, and choice for this player
+                myPlayerID = 2;
+                addPlayerLockout = true;
                 database.ref("/players").update({
                     2:{
                         name: userName,
@@ -123,8 +128,6 @@ $("#start-btn").on("click", function(){
                         losses: 0
                     }
                 })
-                myPlayerID = 2;
-                addPlayerLockout = true;
             //otherwise, the other user is player 2, so make this user player 1
             }else{
                 console.log("Great, you are player 1")
@@ -138,6 +141,8 @@ $("#start-btn").on("click", function(){
                 $("#pop-up-text").html("Let's play some Rock Paper Scissors!")
                 $("#pop-up-window").modal("show")
                 // generate name, losses, wins, and choice for this player
+                myPlayerID = 1;
+                addPlayerLockout = true;
                 database.ref("/players").update({
                     1:{
                         name: userName,
@@ -146,8 +151,6 @@ $("#start-btn").on("click", function(){
                         losses: 0
                     }
                 })
-                myPlayerID = 1;
-                addPlayerLockout = true;
             }
             //now that second player has been entered, create a variable called "turn" in firebase and set equal to 1
             //this will also reset the value if a player leaves in the middle of a game and a new player signs in
@@ -174,8 +177,10 @@ $("#start-btn").on("click", function(){
         //initialize an "onDisconnect" event listener to remove player from data base once they disconnect
         //placing this up here so that th code waits for "myPlayerID" to get a value before setting the onDisconnect event
         var targeRef = "/players/" + myPlayerID;
-        console.log("targetRef: ", targeRef);
+        // console.log("targetRef: ", targeRef);
         database.ref(targeRef).onDisconnect().remove();
+        //also remove messages to clear board
+        database.ref("/messages").onDisconnect().remove();
     })
 
 })
@@ -185,41 +190,55 @@ database.ref().on("value", function(snapshot){
     console.log("value change event listener")
     //if there are no players (at first page initialization or when both players disconnect), don't do anything (return)
     if(snapshot.val() == null || !snapshot.child("players").exists()){
-        console.log("no players yet")
+        console.log("value event listener: no players yet")
         return;
     //if there is only one player, tell them we are wiating for the other player
     }else if(snapshot.child("players").numChildren()<2){
+        console.log("value event listener: 1 player present")
         //scenario 1: 1 is the only player update
         if(snapshot.child("players").child("1").exists()){
             var player1Name = snapshot.child("players").child("1").child("name").val();
             console.log(player1Name)
             $("#js-player1-title").html(player1Name);
             $("#js-instructions").html("waiting for Player 2")
-            $("#js-player2-title").html("waiting for Player 2")
-            $("#js-player2-card-text").html("(waiting for player to join")
+            $("#js-player2-title").html("No Player 2")
+            // $("#js-player2-card-text").html("(waiting for player to join")
         //scenario 2: 2 is the only player update
         }else{
             var player2Name = snapshot.child("players").child("2").child("name").val();
             console.log(player2Name)
             $("#js-player2-title").html(player2Name);
             $("#js-instructions").html("waiting for Player 1")
-            $("#js-player1-title").html("waiting for Player 1")
-            $("#js-player1-card-text").html("(waiting for player to join")
+            $("#js-player1-title").html("No Player 1")
+            // $("#js-player1-card-text").html("(waiting for player to join")
 
         }
     //Otherwise there are two players, continue to the game
     }else{
-        var player1Name = snapshot.child("players").child("1").child("name").val();;
+        console.log("value event listener: 2 players present")
+        //determine the turn number
+        localTurn = snapshot.child("turn").val();
+        console.log("turn #: ", localTurn);
+        //determine scores
+        var p1wins = snapshot.child("players").child("1").child("wins").val();
+        var p1losses = snapshot.child("players").child("1").child("losses").val();
+        var p2wins = snapshot.child("players").child("2").child("wins").val();
+        var p2losses = snapshot.child("players").child("2").child("losses").val();
+        $("#player1-wins").html(p1wins)
+        $("#player1-losses").html(p1losses)
+        $("#player2-wins").html(p2wins)
+        $("#player2-losses").html(p2losses)
+
+        //display names
+        var player1Name = snapshot.child("players").child("1").child("name").val();
         var player2Name = snapshot.child("players").child("2").child("name").val();
         $("#js-player1-title").html(player1Name);
         $("#js-player2-title").html(player2Name);
 
-        //put list of rock, paper, and scissors in each players card
-        
-        
-
-
         //if turn = 1, it's player 1's turn to choose
+        if(localTurn === 1){
+            console.log("myPlayerID:", myPlayerID)
+            console.log("value event listener: turn 1")
             //instructions for player 1 browser
             if(myPlayerID === 1){
                 $("#js-instructions").html("It's your turn. Make a selection.")
@@ -230,15 +249,135 @@ database.ref().on("value", function(snapshot){
                 $("#js-player2-rps-btns").hide();
             }
         //if turn = 2, it's player 2's turn to choose
-
+        }else if(localTurn === 2){
+            console.log("value event listener: turn 2")
+            //instructions for player 1 browser
+            if(myPlayerID === 1){
+                $("#js-instructions").html("It's Player 2's turn. Waiting for Player 2 to choose.")
+                $("#js-player1-rps-btns").hide();
+            //instructions for player 2 browser
+            }else{
+                $("#js-instructions").html("It's your turn. Make a selection.")
+                $("#js-player2-rps-btns").show();
+            }
         //if turn = 3, then both have chosen. Compare choices and display result. Tally wins and losses accordingly
+        }else if(localTurn === 3){
+            console.log("value event listener: turn 3")
+            $("#js-player1-rps-btns").hide();
+            $("#js-player2-rps-btns").hide();
+            var p1Choice = snapshot.child("players").child("1").child("choice").val();
+            var p2Choice = snapshot.child("players").child("2").child("choice").val();
+            console.log("p1: ", p1Choice)
+            console.log("p2: ", p2Choice)
 
-    }
+            var result;
+            //compare choices
+            //check if they chose the same
+            if(p1Choice == p2Choice){
+                result = "Tie"
+                console.log("Tie")
+            //if player 1 chose rock
+            }else if(p1Choice == "rock"){
+                if(p2Choice == "scissors"){
+                    result = "Player 1 wins"
+                    console.log("Player 1 wins")
+                    p1wins++;
+                    p2losses++;
+                }else{
+                    result = "Player 2 wins"
+                    console.log("Player 2 wins")
+                    p2wins++;
+                    p1losses++;
+                }
+            //else if player 1 chose paper
+            }else if(p1Choice == "paper"){
+                if(p2Choice == "rock"){
+                    result = "Player 1 wins"
+                    console.log("Player 1 wins")
+                    p1wins++;
+                    p2losses++;
+                }else{
+                    result = "Player 2 wins"
+                    console.log("Player 2 wins")
+                    p2wins++;
+                    p1losses++;
+                }
+            //else player1 chose scissors
+            }else{
+                if(p2Choice == "paper"){
+                    result = "Player 1 wins"
+                    console.log("Player 1 wins")
+                    p1wins++;
+                    p2losses++;
+                }else{
+                    result = "Player 2 wins"
+                    console.log("Player 2 wins")
+                    p2wins++;
+                    p1losses++;
+                }
+            }
+            $("#js-result-display-title").html(result)
+            $("#js-result-display-card-text").html(
+                "player 1 chose: " + p1Choice +"<br>"
+                + "player2 chose: " + p2Choice + "<br>"
+                + "result: " + result
+            )
+            
 
+            //after 3 seconds start game over
+            startAgainTimeoutID = setTimeout(function(){
+                //clear results
+                $("#js-result-display-title").empty();
+                $("#js-result-display-card-text").empty();
+                //set turn back to 1
+                database.ref().update({
+                    turn: 1
+                })
+                //update wins and losses
+                database.ref("/players/1").update({
+                    wins: p1wins,
+                    losses: p1losses
+                })
+                database.ref("/players/2").update({
+                    wins: p2wins,
+                    losses: p2losses
+                })
 
+            }, 2000)
+            
+
+        
+
+        
+
+        }
+
+    }   
 })
 
 //rock paper scissor click events
+$(".js-rps").on("click", "button", function(){
+    $("#js-player1-rps-btns").hide();
+    $("#js-player2-rps-btns").hide();
+    var currentTurn;
+    console.log("you clicked a rps button");
+    var myChoice = $(this).val();
+    console.log("you chose ", myChoice);
+    var myRef = "players/"+myPlayerID;
+    database.ref(myRef).update({
+        choice: myChoice
+    })
+    database.ref().once('value').then(function(snapshot){
+        currentTurn = snapshot.child("turn").val();
+        console.log(currentTurn);
+        currentTurn++;
+        console.log(currentTurn);
+        database.ref().update({
+            turn: currentTurn
+        })
+    })
+    
+})
 
 
 //==========================================================================
@@ -249,9 +388,31 @@ database.ref().on("value", function(snapshot){
 $("#message-send-btn").on("click", function(){
     event.preventDefault()
     console.log("message-send button clicked")
+    var newMessage = $("#message-input").val();
+    $("#message-input").val("");
+    
+    if(!userName){
+        console.log("gotta sign in before sending a message")
+        return;
+    }
+    if(!newMessage){
+        console.log("no text entered");
+        return;
+    }
+    database.ref("/messages").push({
+        sentBy: userName,
+        content: newMessage
+    })
+
 })
 
-
-
-
+//update message board when message added
+database.ref("/messages").on("child_added", function(snapshot){
+    var message = snapshot.child("content").val();
+    var sender = snapshot.child("sentBy").val();
+    // console.log(sender+": "+message)
+    var newMessageContent = "<b>"+sender+": "+"</b>"+message
+    var newMessageDiv = $("<div>").html(newMessageContent)
+    $("#js-message-board-display").append(newMessageDiv);
+})
 

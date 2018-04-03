@@ -43,11 +43,21 @@
                     <div class="card-body" >
                         <h5 class="card-title" id="js-player1-title">Player 1</h5>
                         <p class="card-text" id="js-player1-card-text"></p>
-                        <div id="js-player1-rps-btns">
+                        <div class="js-rps" id="js-player1-rps-btns">
                             <div class="d-flex flex-column" id="js-player1-rps-btns-wrapper">
                                 <button type="button" class="btn btn-outline-primary" value="rock">Rock</button>
                                 <button type="button" class="btn btn-outline-primary" value="paper">Paper</button>
                                 <button type="button" class="btn btn-outline-primary" value="scissors">Scissors</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <div class="wins-losses-display">
+                            <div class="wins">
+                                Wins: <span id="player1-wins"></span>
+                            </div>
+                            <div class="losses">
+                                Losses: <span id="player1-losses"></span>
                             </div>
                         </div>
                     </div>
@@ -68,11 +78,21 @@
                     <div class="card-body">
                         <h5 class="card-title" id="js-player2-title">Player 2</h5>
                         <p class="card-text" id="js-player2-card-text"></p>
-                        <div id="js-player2-rps-btns">
+                        <div class="js-rps" id="js-player2-rps-btns">
                             <div class="d-flex flex-column" id="js-player2-rps-btns-wrapper">
                                 <button type="button" class="btn btn-outline-primary" value="rock">Rock</button>
                                 <button type="button" class="btn btn-outline-primary" value="paper">Paper</button>
                                 <button type="button" class="btn btn-outline-primary" value="scissors">Scissors</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <div class="wins-losses-display">
+                            <div class="wins">
+                                Wins: <span id="player2-wins"></span>
+                            </div>
+                            <div class="losses">
+                                Losses: <span id="player2-losses"></span>
                             </div>
                         </div>
                     </div>
@@ -87,7 +107,7 @@
                         Message Board
                     </div>
                     <div class="card-body" id="js-message-board-display">
-                        <p class="card-text">(placeholder)</p>
+                        <!-- <p class="card-text">(placeholder)</p> -->
                     </div>
                     <div class="card-footer text-muted">
                         <form class="d-flex">

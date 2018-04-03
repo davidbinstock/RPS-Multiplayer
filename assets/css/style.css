@@ -1,3 +1,7 @@
 #message-input{
     flex-grow: 1;
 }
+
+.card-body{
+    min-height: 200px;
+}
